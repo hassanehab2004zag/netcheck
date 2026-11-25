@@ -18,6 +18,24 @@ http http://example.com 200
 Options: `--json` for machine-readable output, `--workers N` to run checks in parallel (default 4, output keeps file order), `--warn-days N` for the TLS expiry threshold (default 14). The `http` check does not follow redirects, so a 301 can be asserted as expected.
 Exit code is 1 if any check fails. Standard library only.
 
+## Example run
+Against a local web server (`python3 -m http.server 8765`) and local ports, with this `targets.txt`:
+```
+dns localhost
+tcp 127.0.0.1 8765
+http http://127.0.0.1:8765/ 200
+http http://127.0.0.1:8765/missing 200
+tcp 127.0.0.1 9
+```
+Output (exit code 1 because two checks fail on purpose):
+```
+OK   dns localhost                  resolved to 127.0.0.1 (4 ms)
+OK   tcp 127.0.0.1 8765             port open (0 ms)
+OK   http http://127.0.0.1:8765/ 200 status 200 (4 ms)
+FAIL http http://127.0.0.1:8765/missing 200 status 404, expected 200 (5 ms)
+FAIL tcp 127.0.0.1 9                connect failed: [Errno 111] Connection refused (0 ms)
+```
+
 ## Tests
 ```
 python3 -m unittest discover -s tests
